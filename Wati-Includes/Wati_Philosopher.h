@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Wati_Philosopher.h                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tschlege <tschlege@student.42lyon.fr>      +#+  +:+       +#+        */
+/*   By: Wati-Theo <wati-theo@protonmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/16 17:45:25 by tschlege          #+#    #+#             */
-/*   Updated: 2022/07/28 20:41:09 by tschlege         ###   ########lyon.fr   */
+/*   Updated: 2022/07/29 21:48:04 by Wati-Theo        ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,4 +67,5 @@ void			freebox(t_data *data);
 int				check_if_dead(t_philo *philo, int choice);
 int				check_nb_eat(t_philo *philo);
 void			snitching(t_philo *philo, int choice);
+void			unlock_forks(t_philo *philo);
 #endif

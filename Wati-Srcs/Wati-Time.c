@@ -21,6 +21,8 @@ void	wati_usleep(t_data *data, unsigned int sleep_time)
 	gettimeofday(&s_start_time, NULL);
 	while (sleep_time > get_time_difference(s_start_time))
 		usleep(60);
+	if (sleep)
+		sleep += 1;
 }
 
 unsigned int	get_time_difference(struct timeval old_time)

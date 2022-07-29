@@ -3,14 +3,25 @@
 /*                                                        :::      ::::::::   */
 /*   Wati-Philo.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tschlege <tschlege@student.42lyon.fr>      +#+  +:+       +#+        */
+/*   By: Wati-Theo <wati-theo@protonmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/18 19:27:09 by tschlege          #+#    #+#             */
-/*   Updated: 2022/07/28 21:28:42 by tschlege         ###   ########lyon.fr   */
+/*   Updated: 2022/07/29 21:57:36 by Wati-Theo        ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../Wati-Includes/Wati_Philosopher.h"
+
+void	lock_forks(t_philo *philo)
+{
+	pthread_mutex_lock(&philo->data->forks[philo->id - 1]);
+	snitching(philo, FORK);
+	if (philo->id == 1)
+		pthread_mutex_lock(&philo->data->forks[philo->data->nb_philo - 1]);
+	else
+		pthread_mutex_lock(&philo->data->forks[philo->id - 2]);
+	snitching(philo, FORK);
+}
 
 void	snitching(t_philo *philo, int choice)
 {
@@ -33,7 +44,6 @@ void	snitching(t_philo *philo, int choice)
 		printf("%d %d died\n",
 			get_time_difference(philo->data->start_time), philo->id);
 	pthread_mutex_unlock(&philo->data->is_snitching);
-	
 }
 
 void	*sleep_philo(t_philo *philo)
@@ -50,23 +60,26 @@ void	*eat_philo(t_philo *philo)
 	if ((philo->data->nb_eat_max != -42 && !check_nb_eat(philo))
 		|| !check_if_dead(philo, 0))
 		return ((void *)0);
-	pthread_mutex_lock(&philo->data->forks[philo->id - 1]);
-	snitching(philo, FORK);
-	if (philo->id == 1)
-		pthread_mutex_lock(&philo->data->forks[philo->data->nb_philo - 1]);
-	else
-		pthread_mutex_lock(&philo->data->forks[philo->id - 2]);
-	snitching(philo, FORK);
+	lock_forks(philo);
 	pthread_mutex_lock(&philo->data->last_meal_security);
 	philo->last_meal = get_time_difference(philo->data->start_time);
 	pthread_mutex_unlock(&philo->data->last_meal_security);
 	snitching(philo, EAT);
+	if ((get_time_difference(philo->data->start_time) + philo->data->time_to_eat
+			- philo->last_meal)
+		> (unsigned int)philo->data->time_to_die)
+	{
+		if (!check_if_dead(philo, 0))
+			return ((void *)0);
+		wati_usleep(philo->data, philo->data->time_to_die);
+		pthread_mutex_lock(&philo->data->dead_check);
+		philo->data->oh_no_a_dead++;
+		pthread_mutex_unlock(&philo->data->dead_check);
+		unlock_forks(philo);
+		return ((void *)0);
+	}
 	wati_usleep(philo->data, philo->data->time_to_eat);
-	pthread_mutex_unlock(&philo->data->forks[philo->id - 1]);
-	if (philo->id == 1)
-		pthread_mutex_unlock(&philo->data->forks[philo->data->nb_philo - 1]);
-	else
-		pthread_mutex_unlock(&philo->data->forks[philo->id - 2]);
+	unlock_forks(philo);
 	pthread_mutex_lock(&philo->data->eat_check);
 	philo->nb_eat++;
 	pthread_mutex_unlock(&philo->data->eat_check);
