@@ -6,7 +6,7 @@
 /*   By: tschlege <tschlege@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/22 17:46:58 by tschlege          #+#    #+#             */
-/*   Updated: 2022/07/30 18:42:28 by tschlege         ###   ########lyon.fr   */
+/*   Updated: 2022/07/30 19:48:58 by tschlege         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,20 +63,15 @@ int	is_dead(t_philo *philo)
 int	check_nb_eat(t_philo *philo)
 {
 	int	i;
-	int	count;
 
 	i = 0;
-	count = 0;
-	while (i < philo->data->nb_philo)
+	pthread_mutex_lock(&philo->data->eat_check);
+	if (philo->nb_eat >= philo->data->nb_eat_max)
 	{
-		pthread_mutex_lock(&philo->data->eat_check);
-		if (philo->data->philo[i].nb_eat >= philo->data->nb_eat_max)
-			count++;
-		i++;
+		unlock_forks(philo);
 		pthread_mutex_unlock(&philo->data->eat_check);
+		return (0);
 	}
-	if (count != philo->data->nb_philo)
-		return (1);
-	unlock_forks(philo);
-	return (0);
+	pthread_mutex_unlock(&philo->data->eat_check);
+	return (1);
 }
