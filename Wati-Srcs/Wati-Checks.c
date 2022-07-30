@@ -6,7 +6,7 @@
 /*   By: tschlege <tschlege@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/22 17:46:58 by tschlege          #+#    #+#             */
-/*   Updated: 2022/07/30 16:22:59 by tschlege         ###   ########lyon.fr   */
+/*   Updated: 2022/07/30 18:42:28 by tschlege         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,19 +14,21 @@
 /*
 ** La wati-Freebox qui va free correctement promis 
 */
-void	freebox(t_data *data)
+void	*freebox(t_data *data)
 {
 	int	i;
 
-	i = 0;
-	while (i < data->nb_philo)
-	{
+	i = -1;
+	while (++i < data->nb_philo)
 		pthread_join(data->philo[i].thread, NULL);
+	i = -1;
+	while (++i < data->nb_philo)
 		pthread_mutex_destroy(&data->forks[i]);
-		i++;
-	}
-	pthread_mutex_destroy(&data->eat_check);
 	pthread_mutex_destroy(&data->is_snitching);
+	pthread_mutex_destroy(&data->last_meal_security);
+	pthread_mutex_destroy(&data->eat_check);
+	pthread_mutex_destroy(&data->dead_check);
+	return (NULL);
 }
 
 void	unlock_forks(t_philo *philo)

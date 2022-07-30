@@ -6,7 +6,7 @@
 /*   By: tschlege <tschlege@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/18 17:53:58 by tschlege          #+#    #+#             */
-/*   Updated: 2022/07/28 20:42:45 by tschlege         ###   ########lyon.fr   */
+/*   Updated: 2022/07/30 18:40:41 by tschlege         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ int	init_philo(t_data *data)
 	}
 	i = -1;
 	while (++i < data->nb_philo)
-		pthread_join(data->philo[i].thread, NULL);
+		pthread_join(data->philo[i].thread, freebox(data));
 	return (0);
 }
 
@@ -56,9 +56,9 @@ void	init_data_and_forchetta(char *argv[], t_data *data)
 		pthread_mutex_init(&data->forks[i], NULL);
 		i++;
 	}
+	pthread_mutex_init(&data->is_snitching, NULL);
 	pthread_mutex_init(&data->last_meal_security, NULL);
 	pthread_mutex_init(&data->eat_check, NULL);
-	pthread_mutex_init(&data->is_snitching, NULL);
 	pthread_mutex_init(&data->dead_check, NULL);
 	gettimeofday(&data->start_time, NULL);
 	if (init_philo(data) == 0)

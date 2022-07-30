@@ -6,7 +6,7 @@
 /*   By: tschlege <tschlege@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/18 19:27:09 by tschlege          #+#    #+#             */
-/*   Updated: 2022/07/30 17:45:35 by tschlege         ###   ########lyon.fr   */
+/*   Updated: 2022/07/30 18:43:31 by tschlege         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,9 +72,9 @@ int	snitching(t_philo *philo, int choice)
 void	*sleep_philo(t_philo *philo)
 {
 	if (philo->data->nb_eat_max != -42 && !check_nb_eat(philo))
-		return ((void *)0);
+		return (NULL);
 	if (!snitching(philo, SLEEP))
-		return ((void *)0);
+		return (NULL);
 	pthread_mutex_lock(&philo->data->last_meal_security);
 	if (get_time_difference(philo->data->start_time)
 		+ philo->data->time_to_sleep
@@ -83,13 +83,13 @@ void	*sleep_philo(t_philo *philo)
 		pthread_mutex_unlock(&philo->data->last_meal_security);
 		if (!wati_usleep(philo, philo->data->time_to_die
 				- philo->data->time_to_eat))
-			return ((void *)0);
+			return (NULL);
 		is_dead(philo);
-		return ((void *)0);
+		return (NULL);
 	}
 	pthread_mutex_unlock(&philo->data->last_meal_security);
 	if (!wati_usleep(philo, philo->data->time_to_sleep))
-		return ((void *)0);
+		return (NULL);
 	return (think_philo(philo));
 }
 
@@ -97,18 +97,18 @@ void	*eat_philo(t_philo *philo)
 {
 	if (!check_time(philo) || (philo->data->nb_eat_max != -42
 			&& !check_nb_eat(philo)))
-		return ((void *)0);
+		return (NULL);
 	if (!lock_forks(philo))
 		return (NULL);
 	pthread_mutex_lock(&philo->data->last_meal_security);
 	philo->last_meal = get_time_difference(philo->data->start_time);
 	pthread_mutex_unlock(&philo->data->last_meal_security);
 	if (!snitching(philo, EAT))
-		return ((void *)0);
+		return (NULL);
 	if (!wati_usleep(philo, philo->data->time_to_eat))
 	{
 		unlock_forks(philo);
-		return ((void *)0);
+		return (NULL);
 	}
 	unlock_forks(philo);
 	pthread_mutex_lock(&philo->data->eat_check);
@@ -123,7 +123,17 @@ void	*think_philo(void *arg)
 
 	philo = arg;
 	if (!snitching(philo, THINK))
-		return ((void *)0);
+		return (NULL);
+	if (philo->data->time_to_eat > philo->data->time_to_sleep
+		&& philo->data->time_to_die > philo->data->time_to_eat
+		+ philo->data->time_to_sleep && philo->data->nb_philo != 1)
+	{
+		if (!(philo->id % 2))
+			eat_philo(philo);
+		wati_usleep(philo, philo->data->time_to_die);
+		is_dead(philo);
+		return (NULL);
+	}
 	if (!check_time(philo))
 		return (NULL);
 	if (philo->data->nb_philo == 1)
@@ -132,13 +142,13 @@ void	*think_philo(void *arg)
 		snitching(philo, FORK);
 		wati_usleep(philo, philo->data->time_to_die);
 		is_dead(philo);
-		return ((void *)0);
+		return (NULL);
 	}	
 	if (!(philo->id % 2) && get_time_difference(philo->data->start_time)
 		< (unsigned int)(philo->data->time_to_sleep + philo->data->time_to_eat))
 	{
 		if (!wati_usleep(philo, 10))
-			return ((void *)0);
+			return (NULL);
 	}
 	return (eat_philo(philo));
 }
