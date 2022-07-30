@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Wati_Philosopher.h                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: Wati-Theo <wati-theo@protonmail.com>       +#+  +:+       +#+        */
+/*   By: tschlege <tschlege@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/16 17:45:25 by tschlege          #+#    #+#             */
-/*   Updated: 2022/07/29 21:48:04 by Wati-Theo        ###   ########lyon.fr   */
+/*   Updated: 2022/07/30 16:23:13 by tschlege         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,10 +62,10 @@ void			init_data_and_forchetta(char *argv[], t_data *data);
 void			*think_philo(void *arg);
 void			*sleep_philo(t_philo *philo);
 unsigned int	get_time_difference(struct timeval old_time);
-void			wati_usleep(t_data *data, unsigned int sleep_time);
+int				wati_usleep(t_philo *philo, unsigned int sleep_time);
 void			freebox(t_data *data);
-int				check_if_dead(t_philo *philo, int choice);
+int				is_dead(t_philo *philo);
 int				check_nb_eat(t_philo *philo);
-void			snitching(t_philo *philo, int choice);
+int				snitching(t_philo *philo, int choice);
 void			unlock_forks(t_philo *philo);
 #endif

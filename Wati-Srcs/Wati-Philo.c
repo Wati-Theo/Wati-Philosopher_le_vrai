@@ -3,31 +3,40 @@
 /*                                                        :::      ::::::::   */
 /*   Wati-Philo.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: Wati-Theo <wati-theo@protonmail.com>       +#+  +:+       +#+        */
+/*   By: tschlege <tschlege@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/18 19:27:09 by tschlege          #+#    #+#             */
-/*   Updated: 2022/07/29 22:16:35 by Wati-Theo        ###   ########lyon.fr   */
+/*   Updated: 2022/07/30 16:31:50 by tschlege         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../Wati-Includes/Wati_Philosopher.h"
 
-void	lock_forks(t_philo *philo)
+int	lock_forks(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->data->forks[philo->id - 1]);
-	snitching(philo, FORK);
+	if (!snitching(philo, FORK))
+		return (0);
 	if (philo->id == 1)
 		pthread_mutex_lock(&philo->data->forks[philo->data->nb_philo - 1]);
 	else
 		pthread_mutex_lock(&philo->data->forks[philo->id - 2]);
-	snitching(philo, FORK);
+	if (!snitching(philo, FORK))
+		return (0);
+	return (1);
 }
 
-void	snitching(t_philo *philo, int choice)
+int	snitching(t_philo *philo, int choice)
 {
-	if (!check_if_dead(philo, 696))
-		return ;
 	pthread_mutex_lock(&philo->data->is_snitching);
+	pthread_mutex_lock(&philo->data->dead_check);
+	if (philo->data->oh_no_a_dead)
+	{
+		unlock_forks(philo);
+		pthread_mutex_unlock(&philo->data->dead_check);
+		return (0);
+	}
+	pthread_mutex_unlock(&philo->data->dead_check);
 	if (choice == 1)
 		printf("%d %d is thinking\n",
 			get_time_difference(philo->data->start_time), philo->id);
@@ -44,41 +53,46 @@ void	snitching(t_philo *philo, int choice)
 		printf("%d %d died\n",
 			get_time_difference(philo->data->start_time), philo->id);
 	pthread_mutex_unlock(&philo->data->is_snitching);
+	return (1);
 }
 
 void	*sleep_philo(t_philo *philo)
 {
-	if (!check_if_dead(philo, 696))
+	if (philo->data->nb_eat_max != -42 && !check_nb_eat(philo))
 		return ((void *)0);
-	snitching(philo, SLEEP);
-	wati_usleep(philo->data, philo->data->time_to_sleep);
+	if (!snitching(philo, SLEEP))
+		return ((void *)0);
+	if (get_time_difference(philo->data->start_time)
+		+ philo->data->time_to_sleep
+		> (unsigned int)philo->data->time_to_die + philo->last_meal)
+	{
+		if (!wati_usleep(philo, philo->data->time_to_die
+				- philo->data->time_to_eat))
+			return ((void *)0);
+		is_dead(philo);
+		return ((void *)0);
+	}
+	if (!wati_usleep(philo, philo->data->time_to_sleep))
+		return ((void *)0);
 	return (think_philo(philo));
 }
 
 void	*eat_philo(t_philo *philo)
 {
-	if ((philo->data->nb_eat_max != -42 && !check_nb_eat(philo))
-		|| !check_if_dead(philo, 0))
+	if (philo->data->nb_eat_max != -42 && !check_nb_eat(philo))
 		return ((void *)0);
-	lock_forks(philo);
+	if (!lock_forks(philo))
+		return (NULL);
 	pthread_mutex_lock(&philo->data->last_meal_security);
 	philo->last_meal = get_time_difference(philo->data->start_time);
 	pthread_mutex_unlock(&philo->data->last_meal_security);
-	snitching(philo, EAT);
-	if ((get_time_difference(philo->data->start_time) + philo->data->time_to_eat
-			- philo->last_meal)
-		> (unsigned int)philo->data->time_to_die)
+	if (!snitching(philo, EAT))
+		return ((void *)0);
+	if (!wati_usleep(philo, philo->data->time_to_eat))
 	{
-		if (!check_if_dead(philo, 0))
-			return ((void *)0);
-		wati_usleep(philo->data, philo->data->time_to_die);
-		pthread_mutex_lock(&philo->data->dead_check);
-		philo->data->oh_no_a_dead++;
-		pthread_mutex_unlock(&philo->data->dead_check);
 		unlock_forks(philo);
 		return ((void *)0);
 	}
-	wati_usleep(philo->data, philo->data->time_to_eat);
 	unlock_forks(philo);
 	pthread_mutex_lock(&philo->data->eat_check);
 	philo->nb_eat++;
@@ -91,11 +105,13 @@ void	*think_philo(void *arg)
 	t_philo		*philo;
 
 	philo = arg;
-	if (!check_if_dead(philo, 696))
+	if (!snitching(philo, THINK))
 		return ((void *)0);
-	snitching(philo, THINK);
 	if (!(philo->id % 2) && get_time_difference(philo->data->start_time)
 		< (unsigned int)(philo->data->time_to_sleep + philo->data->time_to_eat))
-		wati_usleep(philo->data, 88);
+	{
+		if (!wati_usleep(philo, 10))
+			return ((void *)0);
+	}
 	return (eat_philo(philo));
 }

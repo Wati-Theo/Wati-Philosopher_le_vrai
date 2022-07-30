@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Wati-Checks.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: Wati-Theo <wati-theo@protonmail.com>       +#+  +:+       +#+        */
+/*   By: tschlege <tschlege@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/22 17:46:58 by tschlege          #+#    #+#             */
-/*   Updated: 2022/07/29 21:58:21 by Wati-Theo        ###   ########lyon.fr   */
+/*   Updated: 2022/07/30 16:22:59 by tschlege         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,42 +39,23 @@ void	unlock_forks(t_philo *philo)
 		pthread_mutex_unlock(&philo->data->forks[philo->id - 2]);
 }
 
-int	check_if_dead(t_philo *philo, int choice)
+int	is_dead(t_philo *philo)
 {
+	unlock_forks(philo);
+	pthread_mutex_lock(&philo->data->is_snitching);
 	pthread_mutex_lock(&philo->data->dead_check);
 	if (philo->data->oh_no_a_dead)
-	{	
-		pthread_mutex_unlock(&philo->data->dead_check);
-		if (!choice)
-		{
-			pthread_mutex_lock(&philo->data->is_snitching);
-			unlock_forks(philo);
-			printf("%d %doh_no_died\n",
-				get_time_difference(philo->data->start_time), philo->id);
-			pthread_mutex_unlock(&philo->data->is_snitching);
-		}
-		return (0);
-	}
-	pthread_mutex_unlock(&philo->data->dead_check);
-	pthread_mutex_lock(&philo->data->last_meal_security);
-	if ((get_time_difference(philo->data->start_time)
-			- philo->last_meal)
-		> (unsigned int)philo->data->time_to_die)
 	{
-		if (!choice)
-			unlock_forks(philo);
-		pthread_mutex_lock(&philo->data->is_snitching);
-		printf("%d %d died\n",
-			get_time_difference(philo->data->start_time), philo->id);
 		pthread_mutex_unlock(&philo->data->is_snitching);
-		pthread_mutex_lock(&philo->data->dead_check);
-		philo->data->oh_no_a_dead++;
 		pthread_mutex_unlock(&philo->data->dead_check);
-		pthread_mutex_unlock(&philo->data->last_meal_security);
 		return (0);
 	}
-	pthread_mutex_unlock(&philo->data->last_meal_security);
-	return (1);
+	philo->data->oh_no_a_dead++;
+	pthread_mutex_unlock(&philo->data->dead_check);
+	printf("%d %d died\n",
+		get_time_difference(philo->data->start_time), philo->id);
+	pthread_mutex_unlock(&philo->data->is_snitching);
+	return (0);
 }
 
 int	check_nb_eat(t_philo *philo)
