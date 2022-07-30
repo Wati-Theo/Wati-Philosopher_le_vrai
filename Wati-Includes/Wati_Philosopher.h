@@ -6,7 +6,7 @@
 /*   By: tschlege <tschlege@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/16 17:45:25 by tschlege          #+#    #+#             */
-/*   Updated: 2022/07/30 18:42:07 by tschlege         ###   ########lyon.fr   */
+/*   Updated: 2022/07/30 19:24:54 by tschlege         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,5 +69,8 @@ int				check_nb_eat(t_philo *philo);
 int				snitching(t_philo *philo, int choice);
 void			unlock_forks(t_philo *philo);
 int				check_time(t_philo *philo);
+int				special_arg(t_philo *philo, int choice);
+void			*eat_philo(t_philo *philo);
+void			snitching_choice(t_philo *philo, int choice);
 
 #endif

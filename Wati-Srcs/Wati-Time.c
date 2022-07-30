@@ -6,7 +6,7 @@
 /*   By: tschlege <tschlege@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/20 16:59:41 by tschlege          #+#    #+#             */
-/*   Updated: 2022/07/30 17:43:52 by tschlege         ###   ########lyon.fr   */
+/*   Updated: 2022/07/30 19:27:43 by tschlege         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,11 +29,7 @@ int	check_time(t_philo *philo)
 int	wati_usleep(t_philo *philo, unsigned int sleep_time)
 {
 	struct timeval	s_start_time;
-	int				sleep;
-	int				check;
 
-	check = 0;
-	sleep = philo->data->nb_philo * 0.5;
 	gettimeofday(&s_start_time, NULL);
 	while (sleep_time > get_time_difference(s_start_time))
 	{
@@ -48,8 +44,6 @@ int	wati_usleep(t_philo *philo, unsigned int sleep_time)
 		pthread_mutex_unlock(&philo->data->dead_check);
 		usleep(60);
 	}
-	if (sleep)
-		sleep += 1;
 	return (1);
 }
 
